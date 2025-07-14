@@ -92,7 +92,6 @@ export class BannerTestHelpers {
         await expect(this.page.getByText('Actions')).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Preview PDF' })).toBeVisible();
-        await expect(this.page.getByRole('button', { name: 'Print (Browser)' })).toBeVisible();
     }    /**
      * Check responsive layout at different viewport sizes
      */

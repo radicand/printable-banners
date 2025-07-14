@@ -91,11 +91,6 @@ test.describe('Banner Editor', () => {
         const previewButton = page.getByRole('button', { name: 'Preview PDF' });
         await expect(previewButton).toBeVisible();
         await expect(previewButton).toBeEnabled();
-
-        // Browser print fallback should be available
-        const printButton = page.getByRole('button', { name: 'Print (Browser)' });
-        await expect(printButton).toBeVisible();
-        await expect(printButton).toBeEnabled();
     });
 
     test('should handle PDF operations', async ({ page }) => {

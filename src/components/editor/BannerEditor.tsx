@@ -37,11 +37,6 @@ export default function BannerEditor({
     onBannerUpdate(updatedBanner);
   };
 
-  const handlePrint = () => {
-    // Simple browser print as fallback - just print the current page
-    window.print();
-  };
-
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Left Panel - Controls */}
@@ -58,7 +53,6 @@ export default function BannerEditor({
           onAddText={handleAddText}
           onTextUpdate={handleTextUpdate}
           onToggleInkSaver={handleToggleInkSaver}
-          onPrint={handlePrint}
         />
       </div>
 

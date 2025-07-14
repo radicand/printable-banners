@@ -1,6 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-banner: Georgia, serif;
+  --font-display: Inter, sans-serif;
+  --color-primary-50: #eff6ff;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-secondary-50: #f8fafc;
+  --color-secondary-500: #64748b;
+  --color-secondary-600: #475569;
+  --color-secondary-700: #334155;
+  --spacing-page: 8.5in;
+  --spacing-page-height: 11in;
+}
 
 @layer base {
   body {
@@ -23,60 +36,8 @@
 }
 
 @layer utilities {
-  .print-page {
-    @apply w-full h-full;
-    page-break-after: always;
-  }
-
   .text-outline {
     -webkit-text-stroke: 2px currentColor;
     color: transparent;
-  }
-}
-
-/* Print-specific styles */
-@media print {
-  body {
-    @apply bg-white;
-    margin: 0;
-    padding: 0;
-  }
-
-  .no-print {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-
-  .print-container {
-    width: 100%;
-    height: 100%;
-  }
-
-  .print-page {
-    page-break-after: always;
-    width: 11in;
-    height: 8.5in;
-    margin: 0;
-    padding: 0;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .print-page:last-child {
-    page-break-after: avoid;
-  }
-
-  .print-text-element {
-    margin: 0;
-    padding: 0;
-  }
-}
-
-@media screen {
-  .print-only {
-    display: none !important;
   }
 }

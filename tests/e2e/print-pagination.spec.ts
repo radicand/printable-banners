@@ -32,10 +32,4 @@ test('Banner PDF generation works correctly', async ({ page }) => {
 });
 
 // Test that the print button functionality still exists as backup
-test('Browser print fallback still works', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: 'Select Welcome Home template' }).click();
 
-    // Verify browser print button exists
-    await expect(page.getByRole('button', { name: 'Print (Browser)' })).toBeVisible();
-});

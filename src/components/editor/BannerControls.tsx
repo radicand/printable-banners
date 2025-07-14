@@ -11,7 +11,6 @@ interface BannerControlsProps {
     updates: Partial<BannerTextElement>
   ) => void;
   readonly onToggleInkSaver: () => void;
-  readonly onPrint: () => void;
 }
 
 export default function BannerControls({
@@ -20,7 +19,6 @@ export default function BannerControls({
   onAddText,
   onTextUpdate,
   onToggleInkSaver,
-  onPrint,
 }: Readonly<BannerControlsProps>) {
   const [newText, setNewText] = useState('');
 
@@ -268,9 +266,6 @@ export default function BannerControls({
           </button>
           <button onClick={handlePreviewPDF} className="w-full btn-secondary">
             Preview PDF
-          </button>
-          <button onClick={onPrint} className="w-full btn-secondary">
-            Print (Browser)
           </button>
         </div>
       </div>
