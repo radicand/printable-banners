@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Banner, BannerUtils } from '@/core/banner';
+import { DecorativeElements } from '@/core/decorative';
 import BannerPreview from './BannerPreview';
 import BannerControls from './BannerControls';
+import { DecorativePanel } from '../decorative';
 
 interface BannerEditorProps {
   readonly banner: Banner;
@@ -37,6 +39,11 @@ export default function BannerEditor({
     onBannerUpdate(updatedBanner);
   };
 
+  const handleDecorativeChange = (decorative: DecorativeElements) => {
+    const updatedBanner = { ...banner, decorative };
+    onBannerUpdate(updatedBanner);
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6">
       {/* Left Panel - Controls */}
@@ -53,6 +60,11 @@ export default function BannerEditor({
           onAddText={handleAddText}
           onTextUpdate={handleTextUpdate}
           onToggleInkSaver={handleToggleInkSaver}
+        />
+
+        <DecorativePanel
+          decorative={banner.decorative}
+          onDecorativeChange={handleDecorativeChange}
         />
       </div>
 

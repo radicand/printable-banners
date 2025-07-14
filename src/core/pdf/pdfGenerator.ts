@@ -1,6 +1,8 @@
 import jsPDF from 'jspdf';
 import { Banner, BannerTextElement } from '../banner';
+import { SYSTEM_FONTS } from '../fonts';
 import { measureTextWidth } from '../banner/textMeasure';
+import { calculateBorderPaths, BorderPath, BorderElement } from '../decorative';
 
 export interface PDFGenerationOptions {
     filename?: string;
@@ -59,6 +61,10 @@ export class BannerPDFGenerator {
         pageIndex: number,
         inkSaverMode: boolean
     ): void {
+        // Add page-specific decorative elements (only individual emojis and page-specific borders)
+        this.addPageDecorativeElements(pdf, banner, pageIndex, inkSaverMode);
+
+        // Add text elements
         const allElements = banner.pages.flatMap(p => p.elements);
 
         allElements.forEach(element => {
@@ -128,28 +134,22 @@ export class BannerPDFGenerator {
 
         // Handle ink saver mode (outline text)
         if (inkSaverMode || element.outline) {
-            // Draw outlined text
-            pdf.setTextColor(255, 255, 255); // White fill
+            // Set text rendering mode to stroke-only (1 = stroke text)
             const [r, g, b] = this.hexToRgb(element.color);
-            pdf.setDrawColor(r, g, b); // Colored outline
-            pdf.setLineWidth(1);
+            pdf.setDrawColor(r, g, b); // Set stroke color
+            pdf.setLineWidth(0.5); // Thin outline
 
-            // jsPDF doesn't have native outline text, so we'll simulate it
-            // by drawing the text multiple times with slight offsets
-            const outlineOffsets = [
-                [-0.5, -0.5], [0, -0.5], [0.5, -0.5],
-                [-0.5, 0], [0.5, 0],
-                [-0.5, 0.5], [0, 0.5], [0.5, 0.5]
-            ];
+            // Set text rendering mode to stroke-only using PDF operator
+            (pdf as any).internal.out('1 Tr'); // 1 = stroke text rendering mode
 
-            const [tr, tg, tb] = this.hexToRgb(element.color);
-            pdf.setTextColor(tr, tg, tb);
-            outlineOffsets.forEach(([dx, dy]) => {
-                pdf.text(element.text, element.relativeX + dx, y + dy, {
-                    align: 'center',
-                    angle: element.rotation
-                });
+            // Draw the text (will be stroked because of rendering mode)
+            pdf.text(element.text, element.relativeX, y, {
+                align: 'center',
+                angle: element.rotation
             });
+
+            // Reset text rendering mode to fill (0 = fill text)
+            (pdf as any).internal.out('0 Tr');
         } else {
             // Draw solid text
             const [r, g, b] = this.hexToRgb(element.color);
@@ -162,18 +162,58 @@ export class BannerPDFGenerator {
     }
 
     /**
-     * Map CSS font families to jsPDF font names
+     * Map CSS font families to jsPDF font names with improved mapping
      */
     private static mapFontFamily(fontFamily: string): string {
         const fontMap: Record<string, string> = {
+            // Serif fonts
             'Georgia': 'times',
             'Times New Roman': 'times',
+            'Book Antiqua': 'times',
+            'Palatino': 'times',
+
+            // Sans-serif fonts
             'Arial': 'helvetica',
             'Helvetica': 'helvetica',
-            'Impact': 'helvetica' // Fallback since Impact isn't available
+            'Verdana': 'helvetica',
+            'Tahoma': 'helvetica',
+            'Trebuchet MS': 'helvetica',
+            'Calibri': 'helvetica',
+
+            // Display fonts
+            'Impact': 'helvetica',
+            'Arial Black': 'helvetica',
+            'Franklin Gothic Medium': 'helvetica',
+
+            // Handwriting fonts
+            'Brush Script MT': 'helvetica',
+            'Comic Sans MS': 'helvetica',
+
+            // Monospace fonts
+            'Courier New': 'courier',
+            'Lucida Console': 'courier'
         };
 
-        return fontMap[fontFamily] || 'helvetica';
+        // If we have a mapping, use it
+        if (fontMap[fontFamily]) {
+            return fontMap[fontFamily];
+        }
+
+        // Try to find a system font that matches
+        const systemFont = SYSTEM_FONTS.find(f => f.family === fontFamily);
+        if (systemFont) {
+            switch (systemFont.category) {
+                case 'serif':
+                    return 'times';
+                case 'monospace':
+                    return 'courier';
+                default:
+                    return 'helvetica';
+            }
+        }
+
+        // Default fallback
+        return 'helvetica';
     }
 
     /**
@@ -207,5 +247,578 @@ export class BannerPDFGenerator {
         const pdf = this.generatePDF(banner, { ...options, download: false });
         const arrayBuffer = pdf.output('arraybuffer');
         return new Uint8Array(arrayBuffer);
+    }
+
+    /**
+     * Add decorative elements for a specific page (emojis and page-specific borders)
+     */
+    private static addPageDecorativeElements(
+        pdf: jsPDF,
+        banner: Banner,
+        pageIndex: number,
+        _inkSaverMode: boolean
+    ): void {
+        // Add borders that are specific to this page's position in the banner
+        banner.decorative.borders
+            .filter(border => border.enabled)
+            .forEach(border => {
+                const paths = this.calculateBorderPathsForPage(border, banner, pageIndex);
+                paths.forEach(path => this.renderBorderPath(pdf, path));
+            });
+
+        // Add individual emojis (position them correctly for multi-page banners)
+        banner.decorative.emojis.forEach(emoji => {
+            this.addEmojiElementToPages(pdf, emoji, banner, pageIndex);
+        });
+    }
+
+    /**
+     * Calculate border paths for a specific page in a multi-page banner
+     */
+    private static calculateBorderPathsForPage(
+        border: BorderElement,
+        banner: Banner,
+        pageIndex: number
+    ): BorderPath[] {
+        const totalPages = banner.pages.length;
+        const isFirstPage = pageIndex === 0;
+        const isLastPage = pageIndex === totalPages - 1;
+
+        // For single page banners, show all borders
+        if (totalPages === 1) {
+            return calculateBorderPaths(border, {
+                dimensions: banner.dimensions,
+                inkSaverMode: banner.inkSaverMode
+            });
+        }
+
+        // For multi-page banners, only show appropriate borders
+        const paths: BorderPath[] = [];
+        const { style } = border;
+
+        // Convert dimensions to pixels (assuming 72 DPI)
+        const width = banner.dimensions.unit === 'in' ? banner.dimensions.width * 72 : banner.dimensions.width;
+        const height = banner.dimensions.unit === 'in' ? banner.dimensions.height * 72 : banner.dimensions.height;
+        // Convert margin from inches to points/pixels
+        const fullMarginPx = banner.dimensions.unit === 'in' ? border.margin * 72 : border.margin;
+
+        // Top borders: Show on all pages
+        if (border.position === 'top' || border.position === 'all') {
+            // Always use full margin for top borders
+            const topMargin = fullMarginPx;
+            paths.push(...this.createBorderPathsForPosition(style, width, height, topMargin, 'top', pageIndex, totalPages));
+        }
+
+        // Bottom borders: Show on all pages  
+        if (border.position === 'bottom' || border.position === 'all') {
+            // Always use full margin for bottom borders
+            const bottomMargin = fullMarginPx;
+            paths.push(...this.createBorderPathsForPosition(style, width, height, bottomMargin, 'bottom', pageIndex, totalPages));
+        }
+
+        // Left border: Only show on first page
+        if ((border.position === 'left' || border.position === 'all') && isFirstPage) {
+            paths.push(...this.createBorderPathsForPosition(style, width, height, fullMarginPx, 'left', pageIndex, totalPages));
+        }
+
+        // Right border: Only show on last page  
+        if ((border.position === 'right' || border.position === 'all') && isLastPage) {
+            paths.push(...this.createBorderPathsForPosition(style, width, height, fullMarginPx, 'right', pageIndex, totalPages));
+        }
+
+        return paths;
+    }
+
+    /**
+     * Create border paths for a specific position
+     */
+    private static createBorderPathsForPosition(
+        style: BorderElement['style'],
+        width: number,
+        height: number,
+        margin: number,
+        position: 'top' | 'bottom' | 'left' | 'right',
+        pageIndex: number = 0,
+        totalPages: number = 1
+    ): BorderPath[] {
+        if (style.type === 'emoji' && style.emoji) {
+            return this.createEmojiBorderPaths(style, width, height, margin, position, pageIndex, totalPages);
+        } else {
+            return this.createLineBorderPaths(style, width, height, margin, position);
+        }
+    }
+
+    /**
+     * Create line-based border paths
+     */
+    private static createLineBorderPaths(
+        style: BorderElement['style'],
+        width: number,
+        height: number,
+        margin: number,
+        position: 'top' | 'bottom' | 'left' | 'right'
+    ): BorderPath[] {
+        const dashArray = style.type === 'dashed' ? [5, 5] :
+            style.type === 'dotted' ? [2, 3] : undefined;
+
+        switch (position) {
+            case 'top':
+                return [{
+                    type: 'line',
+                    x1: margin,
+                    y1: margin,
+                    x2: width - margin,
+                    y2: margin,
+                    color: style.color || '#000000',
+                    thickness: style.thickness || 1,
+                    dashArray
+                }];
+            case 'bottom':
+                return [{
+                    type: 'line',
+                    x1: margin,
+                    y1: height - margin,
+                    x2: width - margin,
+                    y2: height - margin,
+                    color: style.color || '#000000',
+                    thickness: style.thickness || 1,
+                    dashArray
+                }];
+            case 'left':
+                return [{
+                    type: 'line',
+                    x1: margin,
+                    y1: margin,
+                    x2: margin,
+                    y2: height - margin,
+                    color: style.color || '#000000',
+                    thickness: style.thickness || 1,
+                    dashArray
+                }];
+            case 'right':
+                return [{
+                    type: 'line',
+                    x1: width - margin,
+                    y1: margin,
+                    x2: width - margin,
+                    y2: height - margin,
+                    color: style.color || '#000000',
+                    thickness: style.thickness || 1,
+                    dashArray
+                }];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * Create emoji-based border paths with enhanced PDF support
+     */
+    private static createEmojiBorderPaths(
+        style: BorderElement['style'],
+        width: number,
+        height: number,
+        margin: number,
+        position: 'top' | 'bottom' | 'left' | 'right',
+        pageIndex: number = 0,
+        totalPages: number = 1
+    ): BorderPath[] {
+        const paths: BorderPath[] = [];
+
+        if (!style.emoji || !style.spacing) return paths;
+
+        const spacing = style.spacing;
+        const size = 16; // Default emoji size
+
+        // Try to render emoji as image for better PDF compatibility
+        const emojiImageData = this.renderEmojiAsImage(style.emoji, size);
+
+        // For multi-page banners, determine if we need to respect left/right margins
+        const isFirstPage = pageIndex === 0;
+        const isLastPage = pageIndex === totalPages - 1;
+        const isMultiPage = totalPages > 1;
+
+        switch (position) {
+            case 'top': {
+                // For multi-page banners, respect margins on first/last pages for left/right edges
+                let startX = 0;
+                let endX = width;
+
+                if (isMultiPage) {
+                    // On first page, respect left margin
+                    if (isFirstPage) {
+                        startX = margin;
+                    }
+                    // On last page, respect right margin  
+                    if (isLastPage) {
+                        endX = width - margin;
+                    }
+                } else {
+                    // Single page: respect both margins
+                    startX = margin;
+                    endX = width - margin;
+                }
+
+                const topCount = Math.floor((endX - startX) / spacing);
+                for (let i = 0; i < topCount; i++) {
+                    if (emojiImageData) {
+                        paths.push({
+                            type: 'image',
+                            dataUrl: emojiImageData,
+                            x: startX + (i * spacing) - (size / 2), // Center horizontally
+                            y: margin - (size / 2), // Center vertically at margin
+                            width: size,
+                            height: size
+                        });
+                    } else {
+                        // Fallback to symbol - adjust positioning for text baseline
+                        paths.push({
+                            type: 'emoji',
+                            emoji: this.mapEmojiForPDF(style.emoji),
+                            x: startX + (i * spacing) + (size / 2), // Center horizontally
+                            y: margin + (size * 0.75), // Adjust for text baseline
+                            size
+                        });
+                    }
+                }
+                break;
+            }
+            case 'bottom': {
+                // For multi-page banners, respect margins on first/last pages for left/right edges
+                let startX = 0;
+                let endX = width;
+
+                if (isMultiPage) {
+                    // On first page, respect left margin
+                    if (isFirstPage) {
+                        startX = margin;
+                    }
+                    // On last page, respect right margin  
+                    if (isLastPage) {
+                        endX = width - margin;
+                    }
+                } else {
+                    // Single page: respect both margins
+                    startX = margin;
+                    endX = width - margin;
+                }
+
+                const bottomCount = Math.floor((endX - startX) / spacing);
+                for (let i = 0; i < bottomCount; i++) {
+                    if (emojiImageData) {
+                        paths.push({
+                            type: 'image',
+                            dataUrl: emojiImageData,
+                            x: startX + (i * spacing) - (size / 2), // Center horizontally
+                            y: height - margin - (size / 2), // Center vertically at margin
+                            width: size,
+                            height: size
+                        });
+                    } else {
+                        paths.push({
+                            type: 'emoji',
+                            emoji: this.mapEmojiForPDF(style.emoji),
+                            x: startX + (i * spacing) + (size / 2), // Center horizontally  
+                            y: height - margin - (size * 0.25), // Adjust for text baseline from bottom
+                            size
+                        });
+                    }
+                }
+                break;
+            }
+            case 'left': {
+                const leftCount = Math.floor((height - 2 * margin) / spacing);
+                for (let i = 0; i < leftCount; i++) {
+                    if (emojiImageData) {
+                        paths.push({
+                            type: 'image',
+                            dataUrl: emojiImageData,
+                            x: margin - (size / 2), // Center horizontally
+                            y: margin + (i * spacing) - (size / 2), // Center vertically
+                            width: size,
+                            height: size
+                        });
+                    } else {
+                        paths.push({
+                            type: 'emoji',
+                            emoji: this.mapEmojiForPDF(style.emoji),
+                            x: margin + (size / 2), // Center horizontally
+                            y: margin + (i * spacing) + (size * 0.75), // Adjust for text baseline
+                            size
+                        });
+                    }
+                }
+                break;
+            }
+            case 'right': {
+                const rightCount = Math.floor((height - 2 * margin) / spacing);
+                for (let i = 0; i < rightCount; i++) {
+                    if (emojiImageData) {
+                        paths.push({
+                            type: 'image',
+                            dataUrl: emojiImageData,
+                            x: width - margin - (size / 2), // Center horizontally
+                            y: margin + (i * spacing) - (size / 2), // Center vertically
+                            width: size,
+                            height: size
+                        });
+                    } else {
+                        paths.push({
+                            type: 'emoji',
+                            emoji: this.mapEmojiForPDF(style.emoji),
+                            x: width - margin - (size / 2), // Center horizontally from right
+                            y: margin + (i * spacing) + (size * 0.75), // Adjust for text baseline
+                            size
+                        });
+                    }
+                }
+                break;
+            }
+        }
+
+        return paths;
+    }
+
+    /**
+     * Render emoji as image data URL for better PDF compatibility
+     */
+    private static renderEmojiAsImage(emoji: string, size: number): string | null {
+        try {
+            // Create a high-resolution canvas for crisp emoji rendering (browser environment only)
+            if (typeof document === 'undefined') {
+                return null; // Test environment or server-side
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return null;
+
+            const pixelRatio = 4; // Higher resolution for better quality
+            canvas.width = size * pixelRatio;
+            canvas.height = size * pixelRatio;
+
+            // Set up high-quality rendering - check if scale method exists (test environment compatibility)
+            if (typeof ctx.scale === 'function') {
+                ctx.scale(pixelRatio, pixelRatio);
+            }
+            ctx.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+
+            // Clear background (transparent)
+            ctx.clearRect(0, 0, size, size);
+
+            // Render emoji
+            ctx.fillText(emoji, size / 1.5, size / 1.5);
+
+            // Convert to data URL
+            return canvas.toDataURL('image/png');
+        } catch (error) {
+            console.warn('Failed to render emoji as image:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Render a single border path to the PDF
+     */
+    private static renderBorderPath(pdf: jsPDF, path: BorderPath): void {
+        if (path.type === 'image' && path.dataUrl && path.width && path.height) {
+            // Render emoji as image for better quality
+            try {
+                pdf.addImage(
+                    path.dataUrl,
+                    'PNG',
+                    path.x || 0,
+                    path.y || 0,
+                    path.width,
+                    path.height
+                );
+            } catch (error) {
+                console.warn('Failed to add emoji image to PDF, falling back to symbol:', error);
+                // Fallback to symbol rendering
+                if (path.emoji) {
+                    const pdfSymbol = this.mapEmojiForPDF(path.emoji);
+                    pdf.setFont('helvetica');
+                    pdf.setFontSize(path.size || 16);
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.text(pdfSymbol, path.x || 0, path.y || 0, {
+                        align: 'center'
+                    });
+                }
+            }
+        } else if (path.type === 'emoji' && path.emoji) {
+            // Convert emoji to PDF-safe symbol
+            const pdfSymbol = this.mapEmojiForPDF(path.emoji);
+
+            // Set font for symbol rendering
+            pdf.setFont('helvetica');
+            pdf.setFontSize(path.size || 16);
+            pdf.setTextColor(0, 0, 0);
+
+            pdf.text(pdfSymbol, path.x || 0, path.y || 0, {
+                align: 'center'
+            });
+        } else if (path.type === 'line' && path.x1 !== undefined) {
+            // Set line properties
+            const [r, g, b] = this.hexToRgb(path.color || '#000000');
+            pdf.setDrawColor(r, g, b);
+            pdf.setLineWidth(path.thickness || 1);
+
+            // Handle dashed/dotted lines
+            if (path.dashArray) {
+                pdf.setLineDashPattern(path.dashArray, 0);
+            } else {
+                pdf.setLineDashPattern([], 0); // Solid line
+            }
+
+            // Draw the line
+            pdf.line(path.x1, path.y1!, path.x2!, path.y2!);
+        }
+    }
+
+    /**
+     * Add an individual emoji element to the correct page in a multi-page banner
+     */
+    private static addEmojiElementToPages(
+        pdf: jsPDF,
+        emoji: { emoji: string; x: number; y: number; size: number; rotation: number },
+        banner: Banner,
+        currentPageIndex: number
+    ): void {
+        const totalPages = banner.pages.length;
+
+        // For single page banners, add emoji directly
+        if (totalPages === 1) {
+            this.addEmojiElementToPage(pdf, emoji);
+            return;
+        }
+
+        // Calculate which page this emoji should appear on based on its x position
+        // x is 0-1 across the entire banner width
+        const emojiPageIndex = Math.floor(emoji.x * totalPages);
+        const clampedPageIndex = Math.max(0, Math.min(emojiPageIndex, totalPages - 1));
+
+        // Only add emoji if we're currently rendering the correct page
+        if (currentPageIndex === clampedPageIndex) {
+            // Calculate the emoji's position within this specific page
+            const pageLocalX = (emoji.x * totalPages) - clampedPageIndex;
+            const localEmoji = {
+                ...emoji,
+                x: pageLocalX // Convert to page-local coordinates (0-1)
+            };
+
+            this.addEmojiElementToPage(pdf, localEmoji);
+        }
+    }
+
+    /**
+     * Add an individual emoji element to the current page
+     */
+    private static addEmojiElementToPage(pdf: jsPDF, emoji: { emoji: string; x: number; y: number; size: number; rotation: number }): void {
+        // Try to render emoji as image first
+        const imageData = this.renderEmojiAsImage(emoji.emoji, emoji.size);
+
+        if (imageData) {
+            // Convert position from 0-1 to points
+            const x = emoji.x * BannerPDFGenerator.PAGE_WIDTH_PT;
+            const y = emoji.y * BannerPDFGenerator.PAGE_HEIGHT_PT;
+
+            // Calculate size in points (emoji.size is in pixels, convert to points)
+            const sizeInPoints = emoji.size * 0.75; // 1px = 0.75pt at 96 DPI
+
+            try {
+                pdf.addImage(imageData, 'PNG',
+                    x - sizeInPoints / 2, // Center horizontally
+                    y - sizeInPoints / 1.5, // Adjust vertical positioning similar to borders
+                    sizeInPoints,
+                    sizeInPoints,
+                    undefined,
+                    'FAST'
+                );
+                return;
+            } catch (error) {
+                console.warn('Failed to add emoji image to PDF:', error);
+            }
+        }
+
+        // Fallback to symbol rendering
+        const pdfSymbol = this.mapEmojiForPDF(emoji.emoji);
+        pdf.setFont('helvetica');
+        pdf.setFontSize(emoji.size);
+        pdf.setTextColor(0, 0, 0);
+
+        // Convert position from 0-1 to points
+        const x = emoji.x * BannerPDFGenerator.PAGE_WIDTH_PT;
+        const y = emoji.y * BannerPDFGenerator.PAGE_HEIGHT_PT;
+
+        pdf.text(pdfSymbol, x, y, {
+            align: 'center',
+            angle: emoji.rotation
+        });
+    }
+
+    /**
+     * Add an individual emoji element to the PDF (legacy method)
+     * @deprecated Use addEmojiElementToPage instead
+     */
+    private static addEmojiElement(pdf: jsPDF, emoji: { emoji: string; x: number; y: number; size: number; rotation: number }): void {
+        // Convert emoji to PDF-safe symbol
+        const pdfSymbol = this.mapEmojiForPDF(emoji.emoji);
+
+        pdf.setFont('helvetica');
+        pdf.setFontSize(emoji.size);
+        pdf.setTextColor(0, 0, 0);
+
+        // Convert percentage positions to points
+        const x = (emoji.x / 100) * BannerPDFGenerator.PAGE_WIDTH_PT;
+        const y = (emoji.y / 100) * BannerPDFGenerator.PAGE_HEIGHT_PT;
+
+        pdf.text(pdfSymbol, x, y, {
+            align: 'center',
+            angle: emoji.rotation
+        });
+    }
+
+    /**
+     * Map emojis to PDF-safe symbols for border rendering
+     */
+    private static mapEmojiForPDF(emoji: string): string {
+        const emojiMap: Record<string, string> = {
+            '⭐': '*',
+            '❤️': '♥',
+            '🌸': '❀',
+            '🌺': '❀',
+            '🌻': '❀',
+            '🌹': '❀',
+            '🌷': '❀',
+            '🎉': '♪',
+            '🎊': '♪',
+            '🎈': '○',
+            '🎁': '■',
+            '🍰': '♦',
+            '🥳': '☺',
+            '✨': '✦',
+            '🌟': '★',
+            '💖': '♥',
+            '💕': '♥',
+            '💗': '♥',
+            '💙': '♥',
+            '💚': '♥',
+            '💛': '♥',
+            '🧡': '♥',
+            '🍀': '♣',
+            '🌿': '♠',
+            '🌱': '♠',
+            '💫': '✦',
+            '🌠': '✦',
+            '⚡': '⚡',
+            '☀️': '☀',
+            '🌙': '☽'
+        };
+
+        return emojiMap[emoji] || '*'; // Default to asterisk
     }
 }

@@ -2,6 +2,8 @@
  * Core banner model representing the structure and properties of a banner
  */
 
+import { DecorativeElements } from '../decorative/types';
+
 export interface BannerDimensions {
     width: number;
     height: number;
@@ -32,6 +34,7 @@ export interface Banner {
     pages: BannerPage[];
     backgroundColor: string;
     inkSaverMode: boolean;
+    decorative: DecorativeElements;
     createdAt: Date;
     updatedAt: Date;
 }

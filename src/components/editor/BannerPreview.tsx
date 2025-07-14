@@ -1,4 +1,5 @@
 import { Banner, BannerTextElement } from '@/core/banner';
+import { DecorativePreview } from '../decorative';
 
 interface BannerPreviewProps {
   readonly banner: Banner;
@@ -42,6 +43,7 @@ export default function BannerPreview({
                 totalPages={banner.pages.length}
                 selectedElementId={selectedElementId}
                 onElementClick={handleElementClick}
+                banner={banner}
               />
             ))}
           </div>
@@ -65,6 +67,7 @@ interface BannerPagePreviewProps {
   readonly totalPages: number;
   readonly selectedElementId: string | null;
   readonly onElementClick: (elementId: string) => void;
+  readonly banner: Banner; // Add full banner for decorative elements
 }
 
 function BannerPagePreview({
@@ -73,6 +76,7 @@ function BannerPagePreview({
   totalPages,
   selectedElementId,
   onElementClick,
+  banner,
 }: BannerPagePreviewProps) {
   // For landscape orientation: width = 11", height = 8.5"
   const aspectRatio = 11 / 8.5; // Landscape aspect ratio
@@ -87,6 +91,17 @@ function BannerPagePreview({
         height: `${containerHeight}px`,
       }}
     >
+      {/* Decorative elements */}
+      <DecorativePreview
+        decorative={banner.decorative}
+        dimensions={banner.dimensions}
+        containerWidth={containerWidth}
+        containerHeight={containerHeight}
+        inkSaverMode={banner.inkSaverMode}
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+      />
+
       {/* Page number indicator */}
       <div className="absolute top-2 left-2 bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded z-10">
         Page {page.pageNumber}

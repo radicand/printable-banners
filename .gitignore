@@ -49,6 +49,9 @@ test-results/
 playwright-report/
 playwright/.cache/
 
+# Generated PDFs (application output)
+*.pdf
+
 # Temporary files
 *.tmp
 *.temp

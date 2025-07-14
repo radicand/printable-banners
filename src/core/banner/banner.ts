@@ -1,11 +1,17 @@
 import { Banner, BannerTextElement, DEFAULT_BANNER_CONFIG, BannerDimensions } from './types';
 import { measureTextWidth } from './textMeasure';
+import { DecorativeElements, BorderElement, EmojiElement, BORDER_STYLES } from '../decorative/types';
 
 /**
  * Factory for creating new banners
  */
 export class BannerFactory {
     static createEmptyBanner(title: string, dimensions?: BannerDimensions): Banner {
+        const defaultDecorativeElements: DecorativeElements = {
+            borders: [],
+            emojis: []
+        };
+
         return {
             id: this.generateId(),
             title,
@@ -13,6 +19,7 @@ export class BannerFactory {
             pages: [{ pageNumber: 1, elements: [] }],
             backgroundColor: DEFAULT_BANNER_CONFIG.backgroundColor,
             inkSaverMode: DEFAULT_BANNER_CONFIG.inkSaverMode,
+            decorative: defaultDecorativeElements,
             createdAt: new Date(),
             updatedAt: new Date(),
         };
@@ -203,5 +210,73 @@ export class BannerUtils {
 
         updatedBanner.updatedAt = new Date();
         return updatedBanner;
+    }
+
+    /**
+     * Add a border element to the banner's decorative elements
+     */
+    static addBorder(banner: Banner, borderStyleId: string, position: BorderElement['position'] = 'all', margin = 0.5): Banner {
+        const borderStyle = BORDER_STYLES.find(style => style.id === borderStyleId);
+        if (!borderStyle) {
+            throw new Error(`Border style with id "${borderStyleId}" not found`);
+        }
+
+        const borderElement: BorderElement = {
+            id: BannerFactory['generateId'](),
+            style: borderStyle,
+            position,
+            margin,
+            enabled: true
+        };
+
+        const updatedBanner = {
+            ...banner,
+            decorative: {
+                ...banner.decorative,
+                borders: [...banner.decorative.borders, borderElement]
+            },
+            updatedAt: new Date()
+        };
+
+        return updatedBanner;
+    }
+
+    /**
+     * Add an emoji element to the banner's decorative elements
+     */
+    static addEmoji(banner: Banner, emoji: string, x: number, y: number, size = 48, rotation = 0): Banner {
+        const emojiElement: EmojiElement = {
+            id: BannerFactory['generateId'](),
+            emoji,
+            x,
+            y,
+            size,
+            rotation
+        };
+
+        const updatedBanner = {
+            ...banner,
+            decorative: {
+                ...banner.decorative,
+                emojis: [...banner.decorative.emojis, emojiElement]
+            },
+            updatedAt: new Date()
+        };
+
+        return updatedBanner;
+    }
+
+    /**
+     * Update decorative elements for a banner
+     */
+    static updateDecorativeElements(banner: Banner, decorative: Partial<DecorativeElements>): Banner {
+        return {
+            ...banner,
+            decorative: {
+                ...banner.decorative,
+                ...decorative
+            },
+            updatedAt: new Date()
+        };
     }
 }
