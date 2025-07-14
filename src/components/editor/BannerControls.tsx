@@ -35,12 +35,6 @@ export default function BannerControls({
     }
   };
 
-  const handleTextChange = (field: keyof BannerTextElement, value: any) => {
-    if (selectedElementId) {
-      onTextUpdate(selectedElementId, { [field]: value });
-    }
-  };
-
   const handlePrintPDF = () => {
     try {
       BannerPDFGenerator.generatePDF(banner, {
@@ -94,6 +88,7 @@ export default function BannerControls({
         <h3 className="text-lg font-semibold text-gray-800 mb-3">Add Text</h3>
         <div className="space-y-3">
           <input
+            id="newText"
             type="text"
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
@@ -124,29 +119,41 @@ export default function BannerControls({
           <div className="space-y-4">
             {/* Text Content */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="textContent"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Text
               </label>
               <input
+                id="textContent"
                 type="text"
                 value={selectedElement.text}
-                onChange={(e) => handleTextChange('text', e.target.value)}
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, { text: e.target.value })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             {/* Font Size */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="fontSize"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Font Size: {Math.round(selectedElement.fontSize / 3)}px
               </label>
               <input
+                id="fontSize"
                 type="range"
                 min="12"
                 max="200"
                 value={selectedElement.fontSize / 3}
                 onChange={(e) =>
-                  handleTextChange('fontSize', parseInt(e.target.value) * 3)
+                  onTextUpdate(selectedElement.id, {
+                    fontSize: Number(e.target.value) * 3,
+                  })
                 }
                 className="w-full"
               />
@@ -154,12 +161,20 @@ export default function BannerControls({
 
             {/* Font Family */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="fontFamily"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Font Family
               </label>
               <select
+                id="fontFamily"
                 value={selectedElement.fontFamily}
-                onChange={(e) => handleTextChange('fontFamily', e.target.value)}
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, {
+                    fontFamily: e.target.value,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="Georgia">Georgia</option>
@@ -172,13 +187,19 @@ export default function BannerControls({
 
             {/* Color */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="colorPicker"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Color
               </label>
               <input
+                id="colorPicker"
                 type="color"
                 value={selectedElement.color}
-                onChange={(e) => handleTextChange('color', e.target.value)}
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, { color: e.target.value })
+                }
                 className="w-full h-10 border border-gray-300 rounded-md"
               />
             </div>
@@ -186,33 +207,45 @@ export default function BannerControls({
             {/* Position */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="xPosition"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   X Position: {Math.round(selectedElement.x * 100)}%
                 </label>
                 <input
+                  id="xPosition"
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
                   value={selectedElement.x}
                   onChange={(e) =>
-                    handleTextChange('x', parseFloat(e.target.value))
+                    onTextUpdate(selectedElement.id, {
+                      x: Number(e.target.value),
+                    })
                   }
                   className="w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="yPosition"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Y Position: {Math.round(selectedElement.y * 100)}%
                 </label>
                 <input
+                  id="yPosition"
                   type="range"
                   min="0"
                   max="1"
                   step="0.01"
                   value={selectedElement.y}
                   onChange={(e) =>
-                    handleTextChange('y', parseFloat(e.target.value))
+                    onTextUpdate(selectedElement.id, {
+                      y: Number(e.target.value),
+                    })
                   }
                   className="w-full"
                 />
@@ -221,16 +254,22 @@ export default function BannerControls({
 
             {/* Rotation */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="rotation"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Rotation: {selectedElement.rotation}°
               </label>
               <input
+                id="rotation"
                 type="range"
                 min="-180"
                 max="180"
                 value={selectedElement.rotation}
                 onChange={(e) =>
-                  handleTextChange('rotation', parseInt(e.target.value))
+                  onTextUpdate(selectedElement.id, {
+                    rotation: Number(e.target.value),
+                  })
                 }
                 className="w-full"
               />

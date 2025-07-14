@@ -4,6 +4,11 @@ interface TemplateSelectorProps {
   onSelectTemplate: (templateId: string) => void;
 }
 
+interface TemplateCardProps {
+  template: BannerTemplate;
+  onSelect: () => void;
+}
+
 export default function TemplateSelector({
   onSelectTemplate,
 }: Readonly<TemplateSelectorProps>) {
@@ -34,11 +39,6 @@ export default function TemplateSelector({
       ))}
     </div>
   );
-}
-
-interface TemplateCardProps {
-  template: BannerTemplate;
-  onSelect: () => void;
 }
 
 function TemplateCard({ template, onSelect }: Readonly<TemplateCardProps>) {

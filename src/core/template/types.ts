@@ -1,4 +1,4 @@
-import { Banner, BannerDimensions } from '../banner';
+import { Banner } from '../banner';
 
 export interface BannerTemplate {
     id: string;
@@ -7,7 +7,7 @@ export interface BannerTemplate {
     category: 'welcome' | 'celebration' | 'announcement' | 'custom';
     preview: string; // Base64 image or SVG string for preview
     defaultText: string[];
-    create: (dimensions?: BannerDimensions) => Banner;
+    create: () => Banner;
 }
 
 export interface TemplateCategory {
