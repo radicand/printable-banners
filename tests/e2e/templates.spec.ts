@@ -10,7 +10,7 @@ test.describe('Template System', () => {
         await expect(page.getByRole('heading', { name: /Welcome.*\(1\)/ })).toBeVisible();
 
         // Celebration category  
-        await expect(page.getByRole('heading', { name: /Celebration.*\(2\)/ })).toBeVisible();
+        await expect(page.getByRole('heading', { name: /Celebration.*\(3\)/ })).toBeVisible();
 
         // Custom category
         await expect(page.getByRole('heading', { name: /Custom.*\(1\)/ })).toBeVisible();
@@ -99,15 +99,15 @@ test.describe('Template System', () => {
         // Desktop - should show 3 columns
         await page.setViewportSize({ width: 1200, height: 800 });
         const templates = page.locator('[aria-label*="template"]');
-        await expect(templates).toHaveCount(4); // All 4 templates should be visible
+        await expect(templates).toHaveCount(5); // All 5 templates should be visible
 
         // Tablet - should show 2 columns  
         await page.setViewportSize({ width: 768, height: 1024 });
-        await expect(templates).toHaveCount(4); // Still all visible
+        await expect(templates).toHaveCount(5); // Still all visible
 
         // Mobile - should show 1 column
         await page.setViewportSize({ width: 375, height: 667 });
-        await expect(templates).toHaveCount(4); // Still all visible
+        await expect(templates).toHaveCount(5); // Still all visible
     });
 
     test('should group templates by category correctly', async ({ page }) => {
@@ -134,7 +134,7 @@ test.describe('Template System', () => {
 
         // Should be back on template page with all templates visible
         await expect(page.getByRole('heading', { name: 'Create Your Perfect Banner' })).toBeVisible();
-        await expect(page.locator('[aria-label*="template"]')).toHaveCount(4);
+        await expect(page.locator('[aria-label*="template"]')).toHaveCount(5);
 
         // Should be able to select a different template
         await page.getByRole('button', { name: 'Select Congratulations template' }).click();

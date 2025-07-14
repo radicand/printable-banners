@@ -115,7 +115,7 @@ export class BannerTestHelpers {
      * Wait for template cards to load
      */
     async waitForTemplatesLoad() {
-        await expect(this.page.locator('[aria-label*="template"]')).toHaveCount(4);
+        await expect(this.page.locator('[aria-label*="template"]')).toHaveCount(5);
     }
 
     /**
@@ -123,7 +123,7 @@ export class BannerTestHelpers {
      */
     async verifyTemplateCategories() {
         await expect(this.page.getByRole('heading', { name: /Welcome.*\(1\)/ })).toBeVisible();
-        await expect(this.page.getByRole('heading', { name: /Celebration.*\(2\)/ })).toBeVisible();
+        await expect(this.page.getByRole('heading', { name: /Celebration.*\(3\)/ })).toBeVisible();
         await expect(this.page.getByRole('heading', { name: /Custom.*\(1\)/ })).toBeVisible();
     }
 }
@@ -150,6 +150,12 @@ export const TestData = {
             description: 'Birthday celebration banner',
             previewTexts: ['HAPPY', 'BIRTHDAY!'],
             bannerTitle: 'Happy Birthday Banner'
+        },
+        partyTime: {
+            name: 'Party Time',
+            description: 'Ultimate celebration banner with full decorative elements',
+            previewTexts: ['PARTY', 'TIME!'],
+            bannerTitle: 'Party Time Banner'
         },
         blank: {
             name: 'Blank Banner',

@@ -12,7 +12,7 @@ export function EmojiSelector({ emojis, onEmojisChange }: EmojiSelectorProps) {
       emoji,
       x: 50, // Center horizontally (percentage)
       y: 20, // Top area (percentage)
-      size: 24, // Default size
+      size: 48, // Default size (doubled from 24)
       rotation: 0,
     };
     onEmojisChange([...emojis, newEmoji]);

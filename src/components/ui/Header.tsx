@@ -1,8 +1,12 @@
 interface HeaderProps {
-  onNewBanner: () => void;
+  readonly showNewBannerButton?: boolean;
+  readonly onNewBanner?: () => void;
 }
 
-export default function Header({ onNewBanner }: HeaderProps) {
+export default function Header({
+  showNewBannerButton = false,
+  onNewBanner,
+}: HeaderProps) {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4 py-4">
@@ -12,12 +16,13 @@ export default function Header({ onNewBanner }: HeaderProps) {
               Printable Banners
             </h1>
           </div>
-
-          <nav className="flex items-center space-x-4">
-            <button onClick={onNewBanner} className="btn-primary">
-              New Banner
-            </button>
-          </nav>
+          {showNewBannerButton && onNewBanner && (
+            <nav className="flex items-center space-x-4">
+              <button onClick={onNewBanner} className="btn-primary">
+                New Banner
+              </button>
+            </nav>
+          )}
         </div>
       </div>
     </header>

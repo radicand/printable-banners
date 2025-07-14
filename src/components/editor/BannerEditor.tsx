@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Banner, BannerUtils } from '@/core/banner';
 import { DecorativeElements } from '@/core/decorative';
 import BannerPreview from './BannerPreview';
-import BannerControls from './BannerControls';
+import { BannerControls } from './BannerControls';
 import { DecorativePanel } from '../decorative';
 
 interface BannerEditorProps {
@@ -45,9 +45,12 @@ export default function BannerEditor({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div
+      className="flex flex-col gap-6 lg:grid lg:grid-cols-[340px_1fr] lg:gap-8"
+      data-testid="banner-editor"
+    >
       {/* Left Panel - Controls */}
-      <div className="lg:w-1/3 space-y-6">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <button onClick={onBack} className="btn-secondary">
             ← Back to Templates
@@ -69,12 +72,20 @@ export default function BannerEditor({
       </div>
 
       {/* Right Panel - Preview */}
-      <div className="lg:w-2/3">
-        <BannerPreview
-          banner={banner}
-          selectedElementId={selectedElementId}
-          onElementSelect={setSelectedElementId}
-        />
+      <div className="relative">
+        <div
+          className="lg:sticky lg:top-20 w-full"
+          style={{
+            maxWidth: 'calc(100vw - 340px - 32px - 32px)', // 340px sidebar + 32px gap + 32px container padding
+            overflowX: 'auto',
+          }}
+        >
+          <BannerPreview
+            banner={banner}
+            selectedElementId={selectedElementId}
+            onElementSelect={setSelectedElementId}
+          />
+        </div>
       </div>
     </div>
   );

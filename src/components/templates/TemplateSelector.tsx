@@ -43,10 +43,18 @@ export default function TemplateSelector({
 
 function TemplateCard({ template, onSelect }: Readonly<TemplateCardProps>) {
   return (
-    <button
+    <div
       className="card p-6 hover:shadow-lg transition-shadow duration-200 cursor-pointer text-left w-full"
       onClick={onSelect}
       aria-label={`Select ${template.name} template`}
+      tabIndex={0}
+      role="button"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
     >
       <div className="aspect-video bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
         {template.defaultText.length > 0 ? (
@@ -81,6 +89,6 @@ function TemplateCard({ template, onSelect }: Readonly<TemplateCardProps>) {
       >
         Use This Template
       </button>
-    </button>
+    </div>
   );
 }

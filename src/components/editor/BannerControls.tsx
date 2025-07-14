@@ -1,64 +1,37 @@
-// BannerControls renders the landing page, template selection, and editor controls
-// This restores the last agent-edited state with correct UI and navigation logic
 import React, { useState } from 'react';
+import { Banner, BannerTextElement } from '@/core/banner';
 import { BannerPDFGenerator } from '@/core/pdf';
 import FontSelector from '../fonts/FontSelector';
-import { TemplateManager } from '@/core/template';
 
 interface BannerControlsProps {
-  onSelectTemplate: (templateId: string) => void;
-  onStartBlank: () => void;
-  banner?: any; // Adjust the type according to your banner object shape
+  banner: Banner;
+  selectedElementId: string | null;
+  onAddText: (text: string) => void;
+  onTextUpdate: (
+    elementId: string,
+    updates: Partial<BannerTextElement>
+  ) => void;
+  onToggleInkSaver: () => void;
 }
 
 export const BannerControls: React.FC<BannerControlsProps> = ({
-  onSelectTemplate,
-  onStartBlank,
   banner,
+  selectedElementId,
+  onAddText,
+  onTextUpdate,
+  onToggleInkSaver,
 }) => {
   const [newText, setNewText] = useState('');
 
-  // Show landing page if no banner is loaded
-  if (!banner) {
-    const templates = TemplateManager.getAllTemplates();
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-pink-50">
-        <h1 className="text-4xl font-bold mb-6">Create Your Perfect Banner</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
-          {templates.map((template) => (
-            <button
-              key={template.id}
-              className="bg-white rounded-lg shadow-md p-6 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              onClick={() => onSelectTemplate(template.id)}
-              aria-label={`Select ${template.name} template`}
-            >
-              <span className="font-semibold">{template.name}</span>
-            </button>
-          ))}
-          <button
-            className="bg-white rounded-lg shadow-md p-6 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-400"
-            onClick={onStartBlank}
-            aria-label="Select Blank Banner template"
-          >
-            <span className="text-2xl mb-2 block">➕</span>
-            <span className="font-semibold">Blank Banner</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const selectedElementId = null;
-
   const selectedElement = selectedElementId
-    ? (banner.pages
-        .flatMap((p: { elements: any[] }) => p.elements)
-        .find((el: any) => el.id === selectedElementId))
+    ? banner.pages
+        .flatMap((p: { elements: BannerTextElement[] }) => p.elements)
+        .find((el: BannerTextElement) => el.id === selectedElementId)
     : null;
 
   const handleAddText = () => {
     if (newText.trim()) {
-      // onAddText(newText.trim());
+      onAddText(newText.trim());
       setNewText('');
     }
   };
@@ -117,6 +90,7 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
         <div className="space-y-3">
           <input
             id="newText"
+            data-testid="text-input"
             type="text"
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
@@ -157,9 +131,8 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                 id="textContent"
                 type="text"
                 value={selectedElement.text}
-                onChange={(_e) =>
-                  // onTextUpdate(selectedElement.id, { text: e.target.value })
-                  null
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, { text: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -180,10 +153,9 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                 max="200"
                 value={selectedElement.fontSize / 3}
                 onChange={(e) =>
-                  // onTextUpdate(selectedElement.id, {
-                  //   fontSize: Number(e.target.value) * 3,
-                  // })
-                  null
+                  onTextUpdate(selectedElement.id, {
+                    fontSize: Number(e.target.value) * 3,
+                  })
                 }
                 className="w-full"
               />
@@ -192,9 +164,8 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
             {/* Font Family */}
             <FontSelector
               value={selectedElement.fontFamily}
-              onChange={(_fontFamily) =>
-                // onTextUpdate(selectedElement.id, { fontFamily })
-                null
+              onChange={(fontFamily) =>
+                onTextUpdate(selectedElement.id, { fontFamily })
               }
             />
 
@@ -210,9 +181,8 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                 id="colorPicker"
                 type="color"
                 value={selectedElement.color}
-                onChange={(_e) =>
-                  // onTextUpdate(selectedElement.id, { color: e.target.value })
-                  null
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, { color: e.target.value })
                 }
                 className="w-full h-10 border border-gray-300 rounded-md"
               />
@@ -234,9 +204,10 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                   max="1"
                   step="0.01"
                   value={selectedElement.x}
-                  onChange={(_e) =>
-                    // onTextUpdate(selectedElement.id, { x: Number(e.target.value) })
-                    null
+                  onChange={(e) =>
+                    onTextUpdate(selectedElement.id, {
+                      x: Number(e.target.value),
+                    })
                   }
                   className="w-full"
                 />
@@ -255,9 +226,10 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                   max="1"
                   step="0.01"
                   value={selectedElement.y}
-                  onChange={(_e) =>
-                    // onTextUpdate(selectedElement.id, { y: Number(e.target.value) })
-                    null
+                  onChange={(e) =>
+                    onTextUpdate(selectedElement.id, {
+                      y: Number(e.target.value),
+                    })
                   }
                   className="w-full"
                 />
@@ -278,9 +250,10 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
                 min="-180"
                 max="180"
                 value={selectedElement.rotation}
-                onChange={(_e) =>
-                  // onTextUpdate(selectedElement.id, { rotation: Number(e.target.value) })
-                  null
+                onChange={(e) =>
+                  onTextUpdate(selectedElement.id, {
+                    rotation: Number(e.target.value),
+                  })
                 }
                 className="w-full"
               />
@@ -299,7 +272,7 @@ export const BannerControls: React.FC<BannerControlsProps> = ({
             <input
               type="checkbox"
               checked={banner.inkSaverMode}
-              // onChange={onToggleInkSaver}
+              onChange={onToggleInkSaver}
               className="rounded"
             />
             <span className="text-sm">Ink Saver Mode (outline text)</span>

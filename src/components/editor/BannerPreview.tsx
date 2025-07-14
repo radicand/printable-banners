@@ -34,7 +34,7 @@ export default function BannerPreview({
 
       <div className="card p-6">
         <div className="border-2 border-dashed border-gray-300 rounded-lg overflow-x-auto">
-          <div className="flex" style={{ minWidth: 'max-content' }}>
+          <div className="flex min-w-max">
             {banner.pages.map((page, index) => (
               <BannerPagePreview
                 key={page.pageNumber}

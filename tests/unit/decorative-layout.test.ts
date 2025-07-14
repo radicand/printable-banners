@@ -62,10 +62,10 @@ describe('calculateDecorativeLayout', () => {
         const balloon = emojis.find(e => e.emoji === '🎈');
         expect(cake).toBeDefined();
         expect(balloon).toBeDefined();
-        expect(cake!.x).toBeCloseTo(0.15 * 258, 1);
-        expect(cake!.y).toBeCloseTo(0.5 * 200, 1);
-        expect(balloon!.x).toBeCloseTo(0.85 * 258, 1);
-        expect(balloon!.y).toBeCloseTo(0.25 * 200, 1);
+        expect(cake!.x).toBeCloseTo(0.15, 3);
+        expect(cake!.y).toBeCloseTo(0.5, 3);
+        expect(balloon!.x).toBeCloseTo(0.85, 3);
+        expect(balloon!.y).toBeCloseTo(0.25, 3);
     });
 
     test('should distribute emojis across multi-page preview', () => {

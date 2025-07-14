@@ -5,7 +5,10 @@ test.describe('Multi-page Border Behavior', () => {
         // Navigate to the app
         await page.goto('http://localhost:3000');
 
-        // Wait for the app to load
+        // Select a template to get to the editor
+        await page.getByRole('button', { name: 'Select Blank Banner template' }).click();
+
+        // Wait for the editor to load
         await page.waitForSelector('[data-testid="banner-editor"]', { timeout: 3000 });
 
         // Add a long banner text that will span multiple pages
@@ -62,7 +65,10 @@ test.describe('Multi-page Border Behavior', () => {
         // Navigate to the app
         await page.goto('http://localhost:3000');
 
-        // Wait for the app to load
+        // Select a template to get to the editor
+        await page.getByRole('button', { name: 'Select Blank Banner template' }).click();
+
+        // Wait for the editor to load
         await page.waitForSelector('[data-testid="banner-editor"]', { timeout: 3000 });
 
         // Add some text
