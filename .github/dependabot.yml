@@ -7,12 +7,44 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 5
+    reviewers:
+      - "radicand"
     assignees:
       - "radicand"
     commit-message:
       prefix: "deps"
+      prefix-development: "deps-dev"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "automated"
+    # Group related updates together to reduce PR noise
+    groups:
+      react-ecosystem:
+        patterns:
+          - "react*"
+          - "@types/react*"
+      typescript-ecosystem:
+        patterns:
+          - "typescript"
+          - "@typescript-eslint/*"
+      testing-ecosystem:
+        patterns:
+          - "@playwright/*"
+          - "playwright"
+      build-tools:
+        patterns:
+          - "vite*"
+          - "@vitejs/*"
+          - "eslint*"
+          - "prettier"
+      css-framework:
+        patterns:
+          - "tailwindcss"
+          - "autoprefixer"
+          - "postcss"
     ignore:
       # Ignore major version updates for these packages to avoid breaking changes
       - dependency-name: "react"
@@ -29,11 +61,18 @@ updates:
       interval: "weekly"
       day: "monday"
       time: "09:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 3
+    reviewers:
+      - "radicand"
     assignees:
       - "radicand"
     commit-message:
       prefix: "ci"
+      include: "scope"
+    labels:
+      - "github-actions"
+      - "automated"
 
   # Enable security updates for Docker
   - package-ecosystem: "docker"
@@ -42,8 +81,15 @@ updates:
       interval: "weekly"
       day: "monday" 
       time: "09:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 2
+    reviewers:
+      - "radicand"
     assignees:
       - "radicand"
     commit-message:
       prefix: "docker"
+      include: "scope"
+    labels:
+      - "docker"
+      - "automated"

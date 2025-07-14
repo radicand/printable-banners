@@ -3,6 +3,23 @@ name: Build and Deploy
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'bun.lockb'
+      - 'tsconfig.json'
+      - 'vite.config.ts'
+      - 'tailwind.config.js'
+      - 'postcss.config.js'
+      - 'playwright.config.ts'
+      - 'bunfig.toml'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'index.html'
+      - '.github/workflows/build-and-deploy.yml'
   release:
     types: [ published ]
 
