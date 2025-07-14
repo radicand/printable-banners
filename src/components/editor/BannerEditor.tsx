@@ -46,7 +46,7 @@ export default function BannerEditor({
 
   return (
     <div
-      className="flex flex-col gap-6 lg:grid lg:grid-cols-[340px_1fr] lg:gap-8"
+      className="flex flex-col gap-6 md:grid md:grid-cols-[340px_1fr] md:gap-8"
       data-testid="banner-editor"
     >
       {/* Left Panel - Controls */}
@@ -74,7 +74,7 @@ export default function BannerEditor({
       {/* Right Panel - Preview */}
       <div className="relative">
         <div
-          className="lg:sticky lg:top-20 w-full"
+          className="md:sticky md:top-20 w-full"
           style={{
             maxWidth: 'calc(100vw - 340px - 32px - 32px)', // 340px sidebar + 32px gap + 32px container padding
             overflowX: 'auto',

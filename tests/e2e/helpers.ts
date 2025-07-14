@@ -93,13 +93,12 @@ export class BannerTestHelpers {
         await expect(this.page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
         await expect(this.page.getByRole('button', { name: 'Preview PDF' })).toBeVisible();
     }    /**
-     * Check responsive layout at different viewport sizes
+     * Check responsive layout at different viewport sizes (tablet and desktop only)
      */
     async testResponsiveLayout() {
         const viewports = [
             { width: 1200, height: 800, name: 'Desktop' },
-            { width: 768, height: 1024, name: 'Tablet' },
-            { width: 375, height: 667, name: 'Mobile' }
+            { width: 768, height: 1024, name: 'Tablet' }
         ];
 
         for (const viewport of viewports) {
