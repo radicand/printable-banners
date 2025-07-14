@@ -1,0 +1,117 @@
+name: Bug Report / Feature Request
+description: Report a bug or request a new feature
+title: "[Issue]: "
+labels: ["triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to improve Printable Banners! 
+        
+        Please fill out this form to help us understand and address your issue effectively.
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What type of issue are you reporting?
+      options:
+        - Bug report
+        - Feature request
+        - Documentation improvement
+        - Performance issue
+        - Security concern
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: |
+        **For bugs**: What happened? What did you expect to happen?
+        **For features**: What functionality would you like to see added?
+      placeholder: Describe the issue or feature request in detail...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce (for bugs)
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: browsers
+    attributes:
+      label: Browser(s) Affected
+      description: Which browsers have you tested this in?
+      multiple: true
+      options:
+        - Chrome
+        - Safari
+        - Firefox
+        - Edge
+        - Mobile Safari (iOS)
+        - Mobile Chrome (Android)
+        - Other (please specify in description)
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Please provide relevant environment details:
+        - Operating System
+        - Browser version
+        - Any other relevant details
+      placeholder: |
+        OS: macOS 14.0
+        Browser: Chrome 120.0
+        Screen size: 1920x1080
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: impact-assessment
+    attributes:
+      label: Impact Assessment
+      description: Help us understand the severity and scope of this issue
+      options:
+        - label: This prevents me from using the application
+        - label: This affects the core printing/PDF functionality
+        - label: This is a UI/UX issue that impacts usability
+        - label: This is a minor cosmetic issue
+        - label: This would be a nice-to-have enhancement
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Add any other context, screenshots, error messages, or examples that might help.
+        
+        **Before submitting, please consider:**
+        - Is this really a bug, or could it be a misunderstanding of the feature?
+        - Have you checked if this issue already exists in the GitHub issues?
+        - For feature requests: does this align with the project's minimal core philosophy?
+      placeholder: Add any additional information, screenshots, or context here...
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Submission Checklist
+      description: Please confirm the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this is not a duplicate
+          required: true
+        - label: I have provided enough detail for the maintainer to understand and reproduce the issue
+          required: true
+        - label: For feature requests, I have considered whether this fits the project's minimal core philosophy
+          required: false

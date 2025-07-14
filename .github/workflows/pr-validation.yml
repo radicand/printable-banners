@@ -1,0 +1,70 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout PR code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v1
+      with:
+        bun-version: latest
+
+    - name: Install dependencies
+      run: bun install
+
+    - name: Run linting
+      run: bun run lint
+
+    - name: Run unit tests
+      run: bun test
+
+    - name: Install Playwright browsers
+      run: bun run playwright install --with-deps
+
+    - name: Run E2E tests
+      run: bun run test:e2e
+
+    - name: Build application
+      run: bun run build
+
+    - name: Test Docker build
+      run: |
+        docker build --platform linux/amd64 -t printable-banners:test .
+        
+    - name: Security scan with Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'printable-banners:test'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  # Require all checks to pass before PR can be merged
+  pr-gate:
+    runs-on: ubuntu-latest
+    needs: validate-pr
+    if: always()
+    
+    steps:
+    - name: Check validation results
+      run: |
+        if [[ "${{ needs.validate-pr.result }}" != "success" ]]; then
+          echo "PR validation failed. Please fix issues before merging."
+          exit 1
+        fi
+        echo "✅ All PR validation checks passed!"

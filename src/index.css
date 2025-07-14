@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-display text-gray-900 bg-gray-50;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-md border border-gray-200;
+  }
+}
+
+@layer utilities {
+  .print-page {
+    @apply w-full h-full;
+    page-break-after: always;
+  }
+
+  .text-outline {
+    -webkit-text-stroke: 2px currentColor;
+    color: transparent;
+  }
+}
+
+/* Print-specific styles */
+@media print {
+  body {
+    @apply bg-white;
+    margin: 0;
+    padding: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .print-container {
+    width: 100%;
+    height: 100%;
+  }
+
+  .print-page {
+    page-break-after: always;
+    width: 11in;
+    height: 8.5in;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .print-page:last-child {
+    page-break-after: avoid;
+  }
+
+  .print-text-element {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
