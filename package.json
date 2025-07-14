@@ -8,9 +8,11 @@
         "build": "vite build",
         "preview": "vite preview",
         "test": "bun test tests/unit",
+        "test:unit": "bun test tests/unit",
         "test:watch": "bun test --watch tests/unit",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
+        "test:all": "bun run test:unit && bun run test:e2e",
         "lint": "eslint src --ext ts,tsx",
         "format": "prettier --write src/**/*.{ts,tsx,css}"
     },

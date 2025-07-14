@@ -1,0 +1,4 @@
+# Bun configuration file
+[test]
+# Set test root to only include unit tests
+root = "./tests/unit"

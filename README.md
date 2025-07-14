@@ -1,5 +1,17 @@
 # Printable Banners
 
+[![Build Status](https://github.com/radicand/printable-banners/workflows/Build%20and%20Deploy/badge.svg)](https://github.com/radicand/printable-banners/actions)
+[![PR Validation](https://github.com/radicand/printable-banners/workflows/Pull%20Request%20Validation/badge.svg)](https://github.com/radicand/printable-banners/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Bun](https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white)](https://bun.sh/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![GitHub release](https://img.shields.io/github/release/radicand/printable-banners.svg)](https://github.com/radicand/printable-banners/releases/)
+[![GitHub issues](https://img.shields.io/github/issues/radicand/printable-banners.svg)](https://github.com/radicand/printable-banners/issues)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
+
 A web application for creating and customizing printable banners, built with React, TypeScript, and Tailwind CSS.
 
 ## Features
@@ -189,6 +201,10 @@ For bug reports and feature requests, please use our [GitHub Issues](https://git
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=radicand/printable-banners&type=Date)](https://star-history.com/#radicand/printable-banners&Date)
 
 ## Acknowledgments
 
