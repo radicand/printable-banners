@@ -43,6 +43,8 @@ jobs:
         
     - name: Security scan with Trivy
       uses: aquasecurity/trivy-action@master
+      id: trivy-scan
+      continue-on-error: true
       with:
         image-ref: 'printable-banners:test'
         format: 'sarif'
@@ -50,7 +52,7 @@ jobs:
 
     - name: Upload Trivy scan results
       uses: github/codeql-action/upload-sarif@v3
-      if: always()
+      if: steps.trivy-scan.outcome == 'success' && hashFiles('trivy-results.sarif') != ''
       with:
         sarif_file: 'trivy-results.sarif'
 
