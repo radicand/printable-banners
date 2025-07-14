@@ -1,0 +1,29 @@
+# Code owners for printable-banners repository
+# This file defines who should be requested for review when changes are made to specific files.
+# For more information: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global owner - review all changes by default
+* @radicand
+
+# Core application code
+/src/ @radicand
+
+# Build and deployment configuration  
+/Dockerfile @radicand
+/.github/workflows/ @radicand
+/vite.config.ts @radicand
+/tsconfig.json @radicand
+
+# Dependencies and package management
+/package.json @radicand
+/bun.lockb @radicand
+
+# Documentation
+/README.md @radicand
+/CONTRIBUTING.md @radicand
+/SECURITY.md @radicand
+
+# Test configuration
+/tests/ @radicand
+/playwright.config.ts @radicand
+/bunfig.toml @radicand
