@@ -20,16 +20,18 @@ A web application for creating and customizing printable banners, built with Rea
 - ✏️ **Text Customization**: Edit text, change fonts, colors, sizes, and positioning
 - 🖨️ **Ink Saver Mode**: Optional outline-only rendering to save printer ink
 - 📄 **Multi-page Support**: Create banners that span multiple landscape pages
-- � **PDF Generation**: Download high-quality PDFs ready for printing with precise cross-page positioning
+- 📝 **PDF Generation**: Download high-quality PDFs ready for printing with precise cross-page positioning (powered by jsPDF v3)
 - 👁️ **PDF Preview**: Preview your banner PDF before downloading
-- �🔧 **Responsive Design**: Works on desktop and mobile devices
+- 📱🔧 **Responsive Design**: Works on desktop and tablet devices (mobile phones are not targeted)
 
 ## Getting Started
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (recommended) or Node.js
+- [Bun](https://bun.sh/) (>=1.0.0, required)
 - A modern web browser (Chrome, Safari, Firefox)
+
+> **Note:** Node.js compatibility is best-effort, but Bun is required for full support and all scripts.
 
 ### Installation
 
@@ -109,13 +111,13 @@ Banners are designed to be printed in landscape orientation on standard paper si
 ### Running Tests
 
 ```bash
-# Run all tests
+# Run all unit tests
 bun test
 
 # Run tests in watch mode
 bun test --watch
 
-# Run E2E tests
+# Run E2E tests (Playwright v1.54)
 bun run test:e2e
 ```
 
@@ -137,16 +139,18 @@ bun run format
 
 ## Technology Stack
 
-- **Frontend**: React 18 with TypeScript
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
-- **Runtime**: Bun (with Node.js compatibility)
-- **Testing**: Bun test + Playwright
+- **Frontend**: React 19.1 with TypeScript 5
+- **Styling**: Tailwind CSS 4.1
+- **Build Tool**: Vite 7
+- **Runtime**: Bun (>=1.0.0, Node.js compatibility best-effort)
+- **PDF Generation**: jsPDF 3
+- **Testing**: Bun test (unit), Playwright 1.54 (E2E)
 
 ## Browser Support
 
-- **Primary**: Chrome (full support)
-- **Secondary**: Safari (best-effort compatibility)
+- **Primary**: Chrome (full support, desktop and tablet)
+- **Secondary**: Safari (best-effort compatibility, desktop and tablet)
+- **Note**: Mobile phone browsers are not targeted or officially supported
 - Modern browser features are used with progressive enhancement
 
 ## Contributing

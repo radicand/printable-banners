@@ -127,10 +127,11 @@ export class BannerPDFGenerator {
     ): void {
         // Set font properties
         pdf.setFont(this.mapFontFamily(element.fontFamily));
-        pdf.setFontSize(element.fontSize * 0.75); // Convert from CSS pixels to PDF points
+        pdf.setFontSize(element.fontSize); // Use raw font size, no 0.75 scaling
 
         // Calculate Y position (PDF coordinate system has origin at top-left)
-        const y = element.y * BannerPDFGenerator.PAGE_HEIGHT_PT;
+        // Center text vertically by offsetting by half the font size
+        const y = (element.y * BannerPDFGenerator.PAGE_HEIGHT_PT) + (element.fontSize / 2);
 
         // Handle ink saver mode (outline text)
         if (inkSaverMode || element.outline) {
@@ -337,7 +338,7 @@ export class BannerPDFGenerator {
         width: number,
         height: number,
         margin: number,
-        position: 'top' | 'bottom' | 'left' | 'right',
+        position: BorderPosition,
         pageIndex: number = 0,
         totalPages: number = 1
     ): BorderPath[] {
@@ -356,7 +357,7 @@ export class BannerPDFGenerator {
         width: number,
         height: number,
         margin: number,
-        position: 'top' | 'bottom' | 'left' | 'right'
+        position: BorderPosition
     ): BorderPath[] {
         const dashArray = style.type === 'dashed' ? [5, 5] :
             style.type === 'dotted' ? [2, 3] : undefined;
@@ -419,7 +420,7 @@ export class BannerPDFGenerator {
         width: number,
         height: number,
         margin: number,
-        position: 'top' | 'bottom' | 'left' | 'right',
+        position: BorderPosition,
         pageIndex: number = 0,
         totalPages: number = 1
     ): BorderPath[] {
@@ -590,13 +591,23 @@ export class BannerPDFGenerator {
             }
 
             const padding = 4 * (size / 12.5); // Add extra pixels to bottom and right
+            // Dynamically scale pixel ratio for large emojis, but cap to avoid jsPDF/browser image limits
+            const baseSize = 48;
+            // Increased max canvas size for ultra-crisp large emojis (e.g., 400pt)
+            // 4096px is safe for most modern browsers and PDF engines
+            const MAX_CANVAS_SIZE = 4096;
+            let pixelRatio = Math.max(4, Math.ceil(size / baseSize) * 4);
+            // Cap pixelRatio so that (size + padding) * pixelRatio <= MAX_CANVAS_SIZE
+            const maxRatio = Math.floor(MAX_CANVAS_SIZE / (size + padding));
+            pixelRatio = Math.min(pixelRatio, maxRatio);
+            if (pixelRatio < 1) pixelRatio = 1; // Fallback safety
+
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!ctx) return null;
 
-            const pixelRatio = 4; // Higher resolution for better quality
-            canvas.width = (size + padding) * pixelRatio;
-            canvas.height = (size + padding) * pixelRatio;
+            canvas.width = Math.round((size + padding) * pixelRatio);
+            canvas.height = Math.round((size + padding) * pixelRatio);
 
             // Set up high-quality rendering - check if scale method exists (test environment compatibility)
             if (typeof ctx.scale === 'function') {
@@ -727,13 +738,13 @@ export class BannerPDFGenerator {
             const x = emoji.x * BannerPDFGenerator.PAGE_WIDTH_PT;
             const y = emoji.y * BannerPDFGenerator.PAGE_HEIGHT_PT;
 
-            // Calculate size in points (emoji.size is in pixels, convert to points)
-            const sizeInPoints = emoji.size * 0.75; // 1px = 0.75pt at 96 DPI
+            // Use raw emoji.size for PDF (no 0.75 scaling)
+            const sizeInPoints = emoji.size;
 
             try {
                 pdf.addImage(imageData, 'PNG',
                     x - sizeInPoints / 2, // Center horizontally
-                    y - sizeInPoints / 1.5, // Adjust vertical positioning similar to borders
+                    y - sizeInPoints / 2, // Center vertically (match UI preview)
                     sizeInPoints,
                     sizeInPoints,
                     undefined,
@@ -801,3 +812,6 @@ export class BannerPDFGenerator {
         return emojiMap[emoji] || '*'; // Default to asterisk
     }
 }
+
+// Define a type alias for border positions to satisfy linter/TS
+export type BorderPosition = 'top' | 'bottom' | 'left' | 'right';
