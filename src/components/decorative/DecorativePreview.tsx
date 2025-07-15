@@ -412,8 +412,8 @@ export function DecorativePreview({
           key={`emoji-${index}`}
           className="absolute"
           style={{
-            left: `${emoji.x}px`,
-            top: `${emoji.y}px`,
+            left: `${emoji.x * containerWidth}px`,
+            top: `${emoji.y * containerHeight}px`,
             fontSize: `${emoji.size * scaleFactor}px`,
             transform: `translate(-50%, -50%) rotate(${emoji.rotation}deg)`,
             zIndex: 5,

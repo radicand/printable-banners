@@ -88,20 +88,11 @@ describe('Decorative Preview Logic', () => {
             totalPages: 2,
         });
 
-        // Both pages should have access to all emojis (filtering happens at render level)
-        expect(page1Layout.emojis.length).toBe(2);
-        expect(page2Layout.emojis.length).toBe(2);
-
-        // Verify the emojis are consistent across pages
-        const cake1 = page1Layout.emojis.find(e => e.emoji === '🎂');
-        const balloon1 = page1Layout.emojis.find(e => e.emoji === '🎈');
-        const cake2 = page2Layout.emojis.find(e => e.emoji === '🎂');
-        const balloon2 = page2Layout.emojis.find(e => e.emoji === '🎈');
-
-        expect(cake1).toBeDefined();
-        expect(balloon1).toBeDefined();
-        expect(cake2).toBeDefined();
-        expect(balloon2).toBeDefined();
+        // Each page should only have the emoji that belongs on that page
+        expect(page1Layout.emojis.length).toBe(1);
+        expect(page1Layout.emojis[0].emoji).toBe('🎂');
+        expect(page2Layout.emojis.length).toBe(1);
+        expect(page2Layout.emojis[0].emoji).toBe('🎈');
     });
 
     test('should calculate border paths correctly', () => {
@@ -146,5 +137,41 @@ describe('Decorative Preview Logic', () => {
         // Test border calculation with empty borders
         expect(emptyDecorative.borders.length).toBe(0);
         expect(emptyDecorative.emojis.length).toBe(0);
+    });
+
+    test('regression: emoji flourishes are positioned correctly per page in multi-page banners', () => {
+        // Simulate a 2-page banner, emoji at 0.25 (should be on page 0), emoji at 0.75 (should be on page 1)
+        const multiPageEmojis: DecorativeElements = {
+            borders: [],
+            emojis: [
+                { id: 'e1', emoji: '🎂', x: 0.25, y: 0.5, size: 48, rotation: 0 },
+                { id: 'e2', emoji: '🎈', x: 0.75, y: 0.5, size: 48, rotation: 0 },
+            ]
+        };
+        const dimensions: BannerDimensions = { width: 11, height: 8.5, unit: 'in' };
+        const totalPages = 2;
+        // Page 0 should only render the first emoji in the correct local position
+        const { emojis: page0Emojis } = calculateDecorativeLayout({
+            decorative: multiPageEmojis,
+            dimensions,
+            pageIndex: 0,
+            totalPages,
+        });
+        // Page 1 should only render the second emoji in the correct local position
+        const { emojis: page1Emojis } = calculateDecorativeLayout({
+            decorative: multiPageEmojis,
+            dimensions,
+            pageIndex: 1,
+            totalPages,
+        });
+        // The bug: currently both pages get both emojis, and their x is not mapped to local page coordinates
+        // Expected: page 0 should have only the first emoji, x ~ 0.5 (center of page 0)
+        //           page 1 should have only the second emoji, x ~ 0.5 (center of page 1)
+        expect(page0Emojis.length).toBe(1);
+        expect(page0Emojis[0].emoji).toBe('🎂');
+        expect(page0Emojis[0].x).toBeCloseTo(0.5, 2); // Should be centered on page 0
+        expect(page1Emojis.length).toBe(1);
+        expect(page1Emojis[0].emoji).toBe('🎈');
+        expect(page1Emojis[0].x).toBeCloseTo(0.5, 2); // Should be centered on page 1
     });
 });

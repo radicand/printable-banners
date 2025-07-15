@@ -8,17 +8,32 @@ import { BannerDimensions } from '../banner/types';
 export function calculateDecorativeLayout({
   decorative,
   dimensions: _dimensions,
-  pageIndex: _pageIndex = 0,
-  totalPages: _totalPages = 1,
+  pageIndex = 0,
+  totalPages = 1,
 }: {
   decorative: DecorativeElements;
   dimensions: BannerDimensions;
   pageIndex?: number;
   totalPages?: number;
 }): { emojis: EmojiElement[] } {
-  // For now, just return all emojis as-is (future: filter by page, position, etc.)
-  // This keeps the function pure and testable.
-  return {
-    emojis: decorative.emojis || [],
-  };
+  // For single page, return all emojis as-is
+  if (totalPages === 1) {
+    return {
+      emojis: decorative.emojis || [],
+    };
+  }
+  // For multi-page: only include emojis that belong on this page, and map x to local page coordinates
+  const pageEmojis: EmojiElement[] = (decorative.emojis || [])
+    .filter(e => {
+      // x is normalized 0-1 across the whole banner
+      const emojiPage = Math.floor(e.x * totalPages);
+      return emojiPage === pageIndex;
+    })
+    .map(e => {
+      // Map x to local page coordinates (0-1)
+      const emojiPage = Math.floor(e.x * totalPages);
+      const localX = (e.x * totalPages) - emojiPage;
+      return { ...e, x: localX };
+    });
+  return { emojis: pageEmojis };
 }

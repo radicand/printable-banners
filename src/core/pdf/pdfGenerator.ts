@@ -589,13 +589,14 @@ export class BannerPDFGenerator {
                 return null; // Test environment or server-side
             }
 
+            const padding = 4 * (size / 12.5); // Add extra pixels to bottom and right
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             if (!ctx) return null;
 
             const pixelRatio = 4; // Higher resolution for better quality
-            canvas.width = size * pixelRatio;
-            canvas.height = size * pixelRatio;
+            canvas.width = (size + padding) * pixelRatio;
+            canvas.height = (size + padding) * pixelRatio;
 
             // Set up high-quality rendering - check if scale method exists (test environment compatibility)
             if (typeof ctx.scale === 'function') {
@@ -608,10 +609,10 @@ export class BannerPDFGenerator {
             ctx.imageSmoothingQuality = 'high';
 
             // Clear background (transparent)
-            ctx.clearRect(0, 0, size, size);
+            ctx.clearRect(0, 0, size + padding, size + padding);
 
-            // Render emoji
-            ctx.fillText(emoji, size / 1.5, size / 1.5);
+            // Render emoji, shifted to keep it visually centered
+            ctx.fillText(emoji, (size / 2) + (padding / 2), (size / 2) + (padding / 2));
 
             // Convert to data URL
             return canvas.toDataURL('image/png');
@@ -753,28 +754,6 @@ export class BannerPDFGenerator {
         // Convert position from 0-1 to points
         const x = emoji.x * BannerPDFGenerator.PAGE_WIDTH_PT;
         const y = emoji.y * BannerPDFGenerator.PAGE_HEIGHT_PT;
-
-        pdf.text(pdfSymbol, x, y, {
-            align: 'center',
-            angle: emoji.rotation
-        });
-    }
-
-    /**
-     * Add an individual emoji element to the PDF (legacy method)
-     * @deprecated Use addEmojiElementToPage instead
-     */
-    private static addEmojiElement(pdf: jsPDF, emoji: { emoji: string; x: number; y: number; size: number; rotation: number }): void {
-        // Convert emoji to PDF-safe symbol
-        const pdfSymbol = this.mapEmojiForPDF(emoji.emoji);
-
-        pdf.setFont('helvetica');
-        pdf.setFontSize(emoji.size);
-        pdf.setTextColor(0, 0, 0);
-
-        // Convert percentage positions to points
-        const x = (emoji.x / 100) * BannerPDFGenerator.PAGE_WIDTH_PT;
-        const y = (emoji.y / 100) * BannerPDFGenerator.PAGE_HEIGHT_PT;
 
         pdf.text(pdfSymbol, x, y, {
             align: 'center',
