@@ -62,6 +62,17 @@ export function BorderSelector({
       return style.emoji.repeat(3);
     }
 
+    if (style.type === 'pattern' && style.pattern) {
+      // Render SVG preview inline
+      return (
+        <span
+          className="inline-block align-middle"
+          style={{ width: 40, height: 20 }}
+          dangerouslySetInnerHTML={{ __html: style.pattern }}
+        />
+      );
+    }
+
     const lineStyle =
       style.type === 'dashed'
         ? 'dashed'
@@ -84,13 +95,19 @@ export function BorderSelector({
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Add Border</h3>
+        <h3
+          className="text-sm font-medium text-gray-700 mb-2"
+          data-testid="add-border-heading"
+        >
+          Add Border
+        </h3>
         <div className="grid grid-cols-2 gap-2">
           {BORDER_STYLES.map((style) => (
             <button
               key={style.id}
               onClick={() => handleAddBorder(style.id)}
               className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 text-left"
+              data-testid={`border-style-${style.id}`}
             >
               <div className="flex-shrink-0">{getStylePreview(style)}</div>
               <div className="flex-1 min-w-0">
@@ -108,7 +125,10 @@ export function BorderSelector({
 
       {borders.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
+          <h3
+            className="text-sm font-medium text-gray-700 mb-2"
+            data-testid="active-borders-heading"
+          >
             Active Borders
           </h3>
           <div className="space-y-2">

@@ -1,7 +1,8 @@
 /**
  * Tests for decorative elements (borders and emojis)
  */
-
+// @ts-ignore: Ignore if bun:test types are missing in this environment
+// eslint-disable-next-line
 import { describe, expect, it } from 'bun:test';
 import {
     BORDER_STYLES,
@@ -36,7 +37,7 @@ describe('Border Styles', () => {
                 expect(style.spacing).toBeDefined();
             }
 
-            if (style.type !== 'emoji') {
+            if (['solid', 'dashed', 'dotted'].includes(style.type)) {
                 expect(style.color).toBeDefined();
             }
         });
@@ -118,6 +119,20 @@ describe('Border Calculations', () => {
         });
 
         expect(paths.length).toBe(1); // Only top border
+    });
+
+    it('should render SVG pattern border as image border paths', () => {
+        const border = createDefaultBorder('flower-vine-svg');
+        border.style = BORDER_STYLES.find(s => s.id === 'flower-vine-svg')!;
+        const paths = calculateBorderPaths(border, {
+            dimensions: { width: 11, height: 8.5, unit: 'in' },
+            inkSaverMode: false
+        });
+        expect(paths.length).toBeGreaterThan(0);
+        paths.forEach(path => {
+            expect(path.type).toBe('image');
+            expect(path.dataUrl).toContain('svg');
+        });
     });
 });
 

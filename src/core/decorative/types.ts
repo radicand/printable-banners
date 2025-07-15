@@ -9,7 +9,9 @@ export interface BorderStyle {
     type: 'solid' | 'dashed' | 'dotted' | 'pattern' | 'emoji';
     thickness?: number; // in points (not needed for emoji borders)
     color?: string; // For solid/dashed/dotted borders
-    pattern?: string; // For pattern borders (SVG or character)
+    // For pattern borders: support separate SVGs for horizontal and vertical
+    pattern?: string; // For horizontal (top/bottom) SVG
+    patternVertical?: string; // For vertical (left/right) SVG
     emoji?: string; // For emoji borders
     spacing?: number; // For pattern/emoji spacing
 }
@@ -102,6 +104,17 @@ export const BORDER_STYLES: BorderStyle[] = [
         type: 'emoji',
         emoji: '🎉',
         spacing: 30
+    },
+    {
+        id: 'flower-vine-svg',
+        name: 'Flower Vine',
+        description: 'Decorative flower vine SVG border (separate SVGs for horizontal and vertical, both must be square)',
+        type: 'pattern',
+        // Horizontal SVG (top/bottom)
+        pattern: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 20 Q10 2, 20 20 T38 20" stroke="#4CAF50" stroke-width="2" fill="none"/><circle cx="10" cy="14" r="2" fill="#FF69B4"/><circle cx="20" cy="20" r="2.5" fill="#FFD700"/><circle cx="30" cy="14" r="2" fill="#FF69B4"/></svg>`,
+        // Vertical SVG (left/right) - now a true vertical vine
+        patternVertical: `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 2 Q38 10, 20 20 T20 38" stroke="#4CAF50" stroke-width="2" fill="none"/><circle cx="14" cy="10" r="2" fill="#FF69B4"/><circle cx="20" cy="20" r="2.5" fill="#FFD700"/><circle cx="14" cy="30" r="2" fill="#FF69B4"/></svg>`,
+        spacing: 40
     }
 ];
 

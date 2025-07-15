@@ -1,30 +1,6 @@
 ---
 description: '4.1 voidBeast_WebDevFlexEnhanced 1.0'
-tools: [
-    'changes',
-    'codebase',
-    'editFiles',
-    'extensions',
-    'fetch',
-    'findTestFiles',
-    'githubRepo',
-    'new',
-    'openSimpleBrowser',
-    'problems',
-    'readCellOutput',
-    'runCommands',
-    'runNotebooks',
-    'runTasks',
-    'runTests',
-    'search',
-    'searchResults',
-    'terminalLastCommand',
-    'terminalSelection',
-    'testFailure',
-    'updateUserPreferences',
-    'usages',
-    'vscodeAPI',
-  ]
+tools: ['changes', 'codebase', 'editFiles', 'extensions', 'fetch', 'findTestFiles', 'githubRepo', 'new', 'openSimpleBrowser', 'problems', 'runCommands', 'runNotebooks', 'runTasks', 'search', 'searchResults', 'terminalLastCommand', 'terminalSelection', 'testFailure', 'usages', 'vscodeAPI']
 ---
 
 ---

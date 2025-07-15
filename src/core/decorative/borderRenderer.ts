@@ -50,6 +50,8 @@ export function calculateBorderPaths(
 
     if (style.type === 'emoji' && style.emoji) {
         return calculateEmojiBorderPaths(border, width, height, marginPx);
+    } else if (style.type === 'pattern' && style.pattern) {
+        return calculatePatternBorderPaths(border, width, height, marginPx);
     } else {
         return calculateLineBorderPaths(border, width, height, marginPx);
     }
@@ -188,6 +190,76 @@ function calculateEmojiBorderPaths(
         }
     }
 
+    return paths;
+}
+
+function calculatePatternBorderPaths(
+    border: BorderElement,
+    width: number,
+    height: number,
+    margin: number
+): BorderPath[] {
+    const { style, position } = border;
+    const paths: BorderPath[] = [];
+    if (!style.pattern || !style.spacing) return paths;
+    // We'll use the SVG pattern as a dataUrl for rendering in the UI and PDF
+    // For now, just return a path for each repeat along the border
+    const svg = style.pattern;
+    const spacing = style.spacing;
+    const svgWidth = 40; // Should match SVG width
+    const svgHeight = 20; // Should match SVG height
+    if (position === 'top' || position === 'all') {
+        const count = Math.floor((width - 2 * margin) / spacing);
+        for (let i = 0; i < count; i++) {
+            paths.push({
+                type: 'image',
+                x: margin + (i * spacing),
+                y: margin - svgHeight / 2,
+                width: svgWidth,
+                height: svgHeight,
+                dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+            });
+        }
+    }
+    if (position === 'bottom' || position === 'all') {
+        const count = Math.floor((width - 2 * margin) / spacing);
+        for (let i = 0; i < count; i++) {
+            paths.push({
+                type: 'image',
+                x: margin + (i * spacing),
+                y: height - margin - svgHeight / 2,
+                width: svgWidth,
+                height: svgHeight,
+                dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+            });
+        }
+    }
+    if (position === 'left' || position === 'all') {
+        const count = Math.floor((height - 2 * margin) / spacing);
+        for (let i = 0; i < count; i++) {
+            paths.push({
+                type: 'image',
+                x: margin - svgWidth / 2,
+                y: margin + (i * spacing),
+                width: svgWidth,
+                height: svgHeight,
+                dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+            });
+        }
+    }
+    if (position === 'right' || position === 'all') {
+        const count = Math.floor((height - 2 * margin) / spacing);
+        for (let i = 0; i < count; i++) {
+            paths.push({
+                type: 'image',
+                x: width - margin - svgWidth / 2,
+                y: margin + (i * spacing),
+                width: svgWidth,
+                height: svgHeight,
+                dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+            });
+        }
+    }
     return paths;
 }
 

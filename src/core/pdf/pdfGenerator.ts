@@ -4,6 +4,8 @@ import { SYSTEM_FONTS } from '../fonts';
 import { measureTextWidth } from '../banner/textMeasure';
 import { calculateBorderPaths, BorderPath, BorderElement } from '../decorative';
 
+const MAX_CANVAS_SIZE = 2048;
+
 export interface PDFGenerationOptions {
     filename?: string;
     download?: boolean;
@@ -432,7 +434,7 @@ export class BannerPDFGenerator {
         const size = 16; // Default emoji size
 
         // Try to render emoji as image for better PDF compatibility
-        const emojiImageData = this.renderEmojiAsImage(style.emoji, size);
+        const emojiImageData = this.renderEmojiAsImage(style.emoji, size, 0, 1);
 
         // For multi-page banners, determine if we need to respect left/right margins
         const isFirstPage = pageIndex === 0;
@@ -583,20 +585,12 @@ export class BannerPDFGenerator {
     /**
      * Render emoji as image data URL for better PDF compatibility
      */
-    private static renderEmojiAsImage(emoji: string, size: number): string | null {
+    private static renderEmojiAsImage(emoji: string, size: number, padding: number = 0, pixelRatio: number = 1): string | null {
         try {
-            // Create a high-resolution canvas for crisp emoji rendering (browser environment only)
-            if (typeof document === 'undefined') {
-                return null; // Test environment or server-side
+            // Only run in browser environments
+            if (typeof window === 'undefined' || typeof document === 'undefined') {
+                return null;
             }
-
-            const padding = 4 * (size / 12.5); // Add extra pixels to bottom and right
-            // Dynamically scale pixel ratio for large emojis, but cap to avoid jsPDF/browser image limits
-            const baseSize = 48;
-            // Increased max canvas size for ultra-crisp large emojis (e.g., 400pt)
-            // 4096px is safe for most modern browsers and PDF engines
-            const MAX_CANVAS_SIZE = 4096;
-            let pixelRatio = Math.max(4, Math.ceil(size / baseSize) * 4);
             // Cap pixelRatio so that (size + padding) * pixelRatio <= MAX_CANVAS_SIZE
             const maxRatio = Math.floor(MAX_CANVAS_SIZE / (size + padding));
             pixelRatio = Math.min(pixelRatio, maxRatio);
@@ -620,13 +614,20 @@ export class BannerPDFGenerator {
             ctx.imageSmoothingQuality = 'high';
 
             // Clear background (transparent)
-            ctx.clearRect(0, 0, size + padding, size + padding);
+            if (typeof ctx.clearRect === 'function') {
+                ctx.clearRect(0, 0, size + padding, size + padding);
+            }
 
             // Render emoji, shifted to keep it visually centered
-            ctx.fillText(emoji, (size / 2) + (padding / 2), (size / 2) + (padding / 2));
+            if (typeof ctx.fillText === 'function') {
+                ctx.fillText(emoji, (size / 2) + (padding / 2), (size / 2) + (padding / 2));
+            }
 
             // Convert to data URL
-            return canvas.toDataURL('image/png');
+            if (typeof canvas.toDataURL === 'function') {
+                return canvas.toDataURL('image/png');
+            }
+            return null;
         } catch (error) {
             console.warn('Failed to render emoji as image:', error);
             return null;
@@ -638,29 +639,42 @@ export class BannerPDFGenerator {
      */
     private static renderBorderPath(pdf: jsPDF, path: BorderPath): void {
         if (path.type === 'image' && path.dataUrl && path.width && path.height) {
-            // Render emoji as image for better quality
-            try {
-                pdf.addImage(
-                    path.dataUrl,
-                    'PNG',
-                    path.x || 0,
-                    path.y || 0,
-                    path.width,
-                    path.height
-                );
-            } catch (error) {
-                console.warn('Failed to add emoji image to PDF, falling back to symbol:', error);
-                // Fallback to symbol rendering
-                if (path.emoji) {
-                    const pdfSymbol = this.mapEmojiForPDF(path.emoji);
-                    pdf.setFont('helvetica');
-                    pdf.setFontSize(path.size || 16);
-                    pdf.setTextColor(0, 0, 0);
-                    pdf.text(pdfSymbol, path.x || 0, path.y || 0, {
-                        align: 'center'
-                    });
-                }
+            // PDF: rotate SVG for left/right borders
+            let angle = 0;
+            if (path.width === 40 && path.height === 20 && (path.x === -20 || path.x === (pdf.internal.pageSize.getWidth() - 20))) {
+                angle = 90;
             }
+            try {
+                if (path.dataUrl.startsWith('data:image/svg+xml')) {
+                    // Try to add SVG, fallback to PNG if it fails
+                    pdf.addImage(
+                        path.dataUrl,
+                        'SVG',
+                        path.x ?? 0,
+                        path.y ?? 0,
+                        path.width,
+                        path.height,
+                        undefined,
+                        'FAST',
+                        angle
+                    );
+                } else {
+                    pdf.addImage(
+                        path.dataUrl,
+                        'PNG',
+                        path.x ?? 0,
+                        path.y ?? 0,
+                        path.width,
+                        path.height,
+                        undefined,
+                        'FAST',
+                        angle
+                    );
+                }
+            } catch (error) {
+                console.warn('Failed to add border image to PDF, falling back to line:', error);
+            }
+            // No return here, let the function continue
         } else if (path.type === 'emoji' && path.emoji) {
             // Convert emoji to PDF-safe symbol
             const pdfSymbol = this.mapEmojiForPDF(path.emoji);
@@ -731,7 +745,7 @@ export class BannerPDFGenerator {
      */
     private static addEmojiElementToPage(pdf: jsPDF, emoji: { emoji: string; x: number; y: number; size: number; rotation: number }): void {
         // Try to render emoji as image first
-        const imageData = this.renderEmojiAsImage(emoji.emoji, emoji.size);
+        const imageData = this.renderEmojiAsImage(emoji.emoji, emoji.size, 0, 1);
 
         if (imageData) {
             // Convert position from 0-1 to points

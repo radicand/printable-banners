@@ -17,6 +17,8 @@ interface DecorativePreviewProps {
   readonly totalPages: number;
 }
 
+type BorderPosition = 'top' | 'bottom' | 'left' | 'right';
+
 export function DecorativePreview({
   decorative,
   dimensions,
@@ -102,10 +104,12 @@ export function DecorativePreview({
     width: number,
     height: number,
     margin: number,
-    position: 'top' | 'bottom' | 'left' | 'right'
+    position: BorderPosition
   ): BorderPath[] => {
     if (style.type === 'emoji' && style.emoji) {
       return createEmojiBorderPaths(style, width, height, margin, position);
+    } else if (style.type === 'pattern' && style.pattern) {
+      return createPatternBorderPaths(style, width, height, margin, position);
     } else {
       return createLineBorderPaths(style, width, height, margin, position);
     }
@@ -119,7 +123,7 @@ export function DecorativePreview({
     width: number,
     height: number,
     margin: number,
-    position: 'top' | 'bottom' | 'left' | 'right'
+    position: BorderPosition
   ): BorderPath[] => {
     const dashArray =
       style.type === 'dashed'
@@ -194,7 +198,7 @@ export function DecorativePreview({
     width: number,
     height: number,
     margin: number,
-    position: 'top' | 'bottom' | 'left' | 'right'
+    position: BorderPosition
   ): BorderPath[] => {
     const paths: BorderPath[] = [];
 
@@ -304,8 +308,89 @@ export function DecorativePreview({
     return paths;
   };
 
+  /**
+   * Create pattern-based border paths for preview
+   */
+  function createPatternBorderPaths(
+    style: DecorativeElements['borders'][0]['style'],
+    width: number,
+    height: number,
+    margin: number,
+    position: BorderPosition
+  ): BorderPath[] {
+    const paths: BorderPath[] = [];
+    if (!style.pattern || !style.spacing) return paths;
+    const spacing = style.spacing;
+    // Enforce 1:1 aspect ratio for all pattern SVGs
+    let svgSize = 40; // Default square size
+    let pattern = style.pattern;
+    if (position === 'left' || position === 'right') {
+      // Use patternVertical if available, else fallback to pattern
+      pattern = style.patternVertical || style.pattern;
+    }
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(pattern, 'image/svg+xml');
+      const svgEl = doc.documentElement;
+      const w = parseFloat(svgEl.getAttribute('width') || '40');
+      const h = parseFloat(svgEl.getAttribute('height') || '40');
+      svgSize = Math.max(w, h);
+    } catch {
+      // fallback: use default svgSize
+    }
+    switch (position) {
+      case 'top':
+      case 'bottom': {
+        const y =
+          position === 'top'
+            ? margin - svgSize / 2
+            : height - margin - svgSize / 2;
+        const count = Math.floor((width - 2 * margin) / spacing);
+        for (let i = 0; i < count; i++) {
+          paths.push({
+            type: 'image',
+            x: margin + i * spacing,
+            y,
+            width: svgSize,
+            height: svgSize,
+            dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(style.pattern)}`,
+          });
+        }
+        break;
+      }
+      case 'left':
+      case 'right': {
+        const x =
+          position === 'left'
+            ? margin - svgSize / 2
+            : width - margin - svgSize / 2;
+        // Improved: ensure SVGs are fully within top/bottom margins
+        const startY = margin + svgSize / 2;
+        const endY = height - margin - svgSize / 2;
+        const count = Math.max(1, Math.floor((endY - startY) / spacing) + 1);
+        for (let i = 0; i < count; i++) {
+          const y = startY + i * spacing;
+          if (y > endY) break;
+          paths.push({
+            type: 'image',
+            x,
+            y: y - svgSize / 2,
+            width: svgSize,
+            height: svgSize,
+            dataUrl: `data:image/svg+xml;utf8,${encodeURIComponent(pattern)}`,
+          });
+        }
+        break;
+      }
+    }
+    return paths;
+  }
+
   const renderBorderPath = (path: BorderPath, index: number) => {
     if (path.type === 'image' && path.dataUrl && path.width && path.height) {
+      // Special handling for left/right SVG pattern borders to avoid clipping and scaling issues
+      // Remove unused isVertical variable
+      // Default: horizontal or square SVG
       return (
         <img
           key={index}
@@ -318,7 +403,7 @@ export function DecorativePreview({
             height: `${path.height * scaleFactor}px`,
             pointerEvents: 'none',
           }}
-          alt="emoji border"
+          alt="svg border"
         />
       );
     } else if (path.type === 'emoji' && path.emoji) {
@@ -387,8 +472,6 @@ export function DecorativePreview({
   const { emojis: positionedEmojis } = calculateDecorativeLayout({
     decorative,
     dimensions,
-    containerWidth,
-    containerHeight,
     pageIndex,
     totalPages,
   });
@@ -407,9 +490,9 @@ export function DecorativePreview({
         .flat()}
 
       {/* Render individual emojis using layout utility */}
-      {positionedEmojis.map((emoji, index) => (
+      {positionedEmojis.map((emoji) => (
         <div
-          key={`emoji-${index}`}
+          key={emoji.id}
           className="absolute"
           style={{
             left: `${emoji.x * containerWidth}px`,

@@ -19,18 +19,18 @@ test.describe('Multi-page Border Behavior', () => {
         await page.waitForTimeout(1000);
 
         // Open decorative controls
-        const decorativeButton = page.locator('button:has-text("Decorative")');
+        const decorativeButton = page.getByTestId('add-border-heading');
         if (await decorativeButton.isVisible()) {
             await decorativeButton.click();
         }
 
         // Add an emoji border
-        const addBorderButton = page.locator('button:has-text("Add Border")');
+        const addBorderButton = page.getByTestId('add-border-heading');
         if (await addBorderButton.isVisible()) {
             await addBorderButton.click();
 
             // Select an emoji border style
-            const emojiBorderOption = page.locator('[data-testid="border-style"]:has-text("Star Border")');
+            const emojiBorderOption = page.getByTestId('border-style-star-pattern');
             if (await emojiBorderOption.isVisible()) {
                 await emojiBorderOption.click();
             }
@@ -76,7 +76,7 @@ test.describe('Multi-page Border Behavior', () => {
         await page.press('[data-testid="text-input"]', 'Enter');
 
         // Check if decorative controls are available
-        const decorativeSection = page.locator('text=Decorative');
+        const decorativeSection = page.getByTestId('add-border-heading');
         if (await decorativeSection.isVisible()) {
             // Verify that we can interact with border controls
             await expect(decorativeSection).toBeVisible();
